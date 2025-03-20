@@ -17,7 +17,9 @@ template <class Key, class Hash, class Allocator = std::allocator<typename Hash:
 class seeded_hash_generator {
 public:
     using seed_type = typename Hash::seed_type;
-    seeded_hash_generator(size_t num_hashes, unsigned int rng_seed = std::random_device{}(), const Allocator& alloc = Allocator()) : _seeds(num_hashes, alloc) {
+    using hash_type = typename Hash::hash_type;
+    //seeded_hash_generator(size_t num_hashes, unsigned int rng_seed = std::random_device{}(), const Allocator& alloc = Allocator()) : _seeds(num_hashes, alloc) {
+    seeded_hash_generator(size_t num_hashes, unsigned int rng_seed = 1, const Allocator& alloc = Allocator()) : _seeds(num_hashes, alloc) {
         auto engine =std::mt19937_64{rng_seed};
         auto dist = std::uniform_int_distribution<seed_type>{std::numeric_limits<seed_type>::min(), std::numeric_limits<seed_type>::max()};
         std::unordered_set<seed_type,std::hash<Key>,std::equal_to<Key>,Allocator> previous_seeds(alloc);
@@ -36,6 +38,9 @@ public:
     
     std::vector<seed_type, Allocator> get_seeds() const {
         return _seeds;
+    }
+    size_t hashes_per_key() const {
+        return _seeds.size();
     }
     
 private:
