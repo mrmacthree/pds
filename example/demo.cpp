@@ -5,16 +5,32 @@
 #include <unordered_set>
 #include <vector>
 #include <sul/dynamic_bitset.hpp>
-#include "ds.hpp"
 #include "hash.hpp"
 #include "bloom_filter.hpp"
 #include "MurmurHash3.h"
+struct MockHash {
+    using seed_type = uint32_t;
+    using hash_type = uint64_t;
+
+    hash_type operator()(const std::string& key, seed_type seed) const {
+        return 5u ^ seed;
+        //return std::hash<std::string>{}(key) ^ seed;
+    }
+};
 
 
 int main() {
     auto engine =std::default_random_engine{std::random_device{}()};
     auto dist = std::uniform_int_distribution<>{std::numeric_limits<int>::min(), std::numeric_limits<int>::max()};
     constexpr size_t NUM = 100;
+    
+    pds::hash::simple_hash_generator<std::string, MockHash> generator(3);
+    std::string key = "test";
+
+    auto hashes = generator.hashes(key);
+    //auto vec = std::vector<uint64_t>{};
+    //std::ranges::copy(hashes, std::back_inserter(vec));
+    //std::vector<uint64_t> hash_results(std::ranges::begin(hashes), std::ranges::end(hashes));
     
     std::vector<int> v(NUM);
     pds::bloom_filter<int> bf(NUM, 0.01);

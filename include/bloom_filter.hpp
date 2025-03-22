@@ -24,19 +24,15 @@
 
 namespace pds {
 
-template <class Key,class HashGenerator = pds::hash::default_hash_generator<Key>, class Allocator = std::allocator<uint_fast8_t>>
+template <typename Key, hash::HashGenerator<Key> HashGen = pds::hash::default_hash_generator<Key>, std::unsigned_integral WordType = uint8_t, typename Allocator = std::allocator<WordType>>
 class bloom_filter {
-    //static_assert(std::is_unsigned<Block>::value, "Block is not an unsigned integral type");
 public:
     using key_type = Key;
-    using hash_type = HashGenerator::hash_type;
+    using hash_type = HashGen::hash_type;
     using size_type = size_t;
-    using word_type = uint_fast8_t;
+    using word_type = WordType;
     using allocator_type = Allocator;
-    using hash_generator_type = HashGenerator;
-    
-    static_assert(std::is_integral<hash_type>::value, "Hash generator must return an integral type.");
-    static_assert(std::is_unsigned<word_type>::value, "word_type must be an unsigned type.");
+    using hash_generator_type = HashGen;
     
     static constexpr size_type bits_per_word = std::numeric_limits<word_type>::digits;
     static constexpr size_type bits_per_word_log2 = std::countr_zero(bits_per_word);
@@ -63,12 +59,12 @@ public:
     : _bit_array(optimal_num_bits(input_size,false_positive_probability)>>bits_per_word_log2,0,alloc),
     _hash_generator(optimal_num_hashes(input_size,false_positive_probability))
     {}
-    bloom_filter(size_t num_bits, HashGenerator hash_generator, const Allocator& alloc = Allocator())
+    bloom_filter(size_t num_bits, HashGen hash_generator, const Allocator& alloc = Allocator())
     : _bit_array((num_bits+word_mask)/bits_per_word,0,alloc),
     _hash_generator(hash_generator)
     {}
     
-    template<class InputIt>
+    template<typename InputIt>
     void insert(InputIt first, InputIt last) noexcept {
         for(auto it = first; it!=last; ++it) {
             insert(*it);
@@ -106,7 +102,7 @@ public:
         return std::all_of(_bit_array.begin(),_bit_array.end(), [] (word_type x){return x == 0;});
     }
     
-    void swap(const bloom_filter<Key,HashGenerator,Allocator>& other) noexcept {
+    void swap(const bloom_filter<Key,HashGen,WordType,Allocator>& other) noexcept {
         _bit_array.swap(other._bit_array);
     }
     
@@ -126,7 +122,7 @@ public:
         return _bit_array;
     }
     
-    bloom_filter<Key,HashGenerator,Allocator>& operator&=(const bloom_filter<Key,HashGenerator,Allocator>& other) {
+    bloom_filter<Key,HashGen,WordType,Allocator>& operator&=(const bloom_filter<Key,HashGen,WordType,Allocator>& other) {
         assert(other.bit_capacity() == bit_capacity());
         for (size_t i = 0; i<_bit_array.size(); ++i) {
             _bit_array[i] &= other._bit_array[i];
@@ -134,13 +130,13 @@ public:
         return *this;
     }
     
-    bloom_filter<Key,HashGenerator,Allocator> operator&(const bloom_filter<Key,HashGenerator,Allocator>& other) {
-        bloom_filter<Key,HashGenerator,Allocator> res(*this);
+    bloom_filter<Key,HashGen,WordType,Allocator> operator&(const bloom_filter<Key,HashGen,WordType,Allocator>& other) {
+        bloom_filter<Key,HashGen,WordType,Allocator> res(*this);
         res &= other;
         return res;
     }
     
-    bloom_filter<Key,HashGenerator,Allocator>& operator|=(const bloom_filter<Key,HashGenerator,Allocator>& other) {
+    bloom_filter<Key,HashGen,WordType,Allocator>& operator|=(const bloom_filter<Key,HashGen,WordType,Allocator>& other) {
         assert(other.bit_capacity() == bit_capacity());
         for (size_t i = 0; i<_bit_array.size(); ++i) {
             _bit_array[i] |= other._bit_array[i];
@@ -148,8 +144,8 @@ public:
         return *this;
     }
     
-    bloom_filter<Key,HashGenerator,Allocator> operator|(const bloom_filter<Key,HashGenerator,Allocator>& other) {
-        bloom_filter<Key,HashGenerator,Allocator> res(*this);
+    bloom_filter<Key,HashGen,WordType,Allocator> operator|(const bloom_filter<Key,HashGen,WordType,Allocator>& other) {
+        bloom_filter<Key,HashGen,Allocator> res(*this);
         res |= other;
         return res;
     }
