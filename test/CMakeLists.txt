@@ -33,4 +33,5 @@ gtest_discover_tests(bloom_filter_test DISCOVERY_MODE PRE_TEST)
 
 target_code_coverage(hash_test AUTO ALL EXTERNAL)
 target_code_coverage(bloom_filter_test AUTO ALL EXTERNAL)
-add_subdirectory(benchmark)
+
+

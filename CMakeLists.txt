@@ -5,6 +5,11 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+cmake_dependent_option(PDS_EXAMPLES "Build PDS examples." ON PROJECT_IS_TOP_LEVEL OFF)
+cmake_dependent_option(PDS_TESTS "Build PDS test suite." ON PROJECT_IS_TOP_LEVEL OFF)
+cmake_dependent_option(PDS_BENCHMARKS "Build PDS benchmarks." ON PROJECT_IS_TOP_LEVEL OFF)
+
+
 include(FetchContent)
 
 FetchContent_Declare(
@@ -37,7 +42,17 @@ target_include_directories(pds INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURC
 target_include_directories(pds SYSTEM INTERFACE $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>)
 
 add_subdirectory(thirdparty)
-add_subdirectory(example)
-add_subdirectory(test)
+
+if (PDS_EXAMPLES)
+	add_subdirectory(example)
+endif()
+
+if (PDS_TESTS)
+	add_subdirectory(test)
+endif()
+
+if (PDS_BENCHMARKS)
+	add_subdirectory(benchmark)
+endif()
 
 
