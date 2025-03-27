@@ -1,6 +1,6 @@
 
 
-enable_testing()
+
 
 
 

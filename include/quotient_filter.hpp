@@ -7,7 +7,7 @@ namespace pds {
 template <class Key, class Hash = pds::hash::default_hash<Key>,
           class Container = std::vector<unsigned int>>
 class quotient_filter {
-public:
+ public:
   // assert or trait that these are unsigned
   using seed_type = typename Hash::seed_type;
   using hash_type = typename Hash::hash_type;
@@ -19,7 +19,8 @@ public:
                std::numeric_limits<hash_type>::digits,
            "q+r must equal num bits in underlying type");
   }
-  template <class InputIt> void insert(InputIt first, InputIt last) noexcept {
+  template <class InputIt>
+  void insert(InputIt first, InputIt last) noexcept {
     for (auto it = first; it != last; ++it) {
       insert(*it);
     }
@@ -28,8 +29,7 @@ public:
     assert(_size < _table.size());
     auto [quotient, remainder] = divide(Hash{}(key, _seed));
     auto quotient_seen = _bucket_occupied[quotient];
-    if (!quotient_seen)
-      _bucket_occupied[quotient] = true;
+    if (!quotient_seen) _bucket_occupied[quotient] = true;
 
     if (!quotient_seen && !_is_shifted[quotient]) {
       // insert in canonical slot if it is empty
@@ -53,11 +53,9 @@ public:
       if (_bucket_occupied[quotient]) {
         // if _bucket_occupied then find location within run
         while (remainder > _table[i++]) {
-          if (i == _table.size())
-            i = 0;
+          if (i == _table.size()) i = 0;
         }
-        if (remainder == _table[i])
-          return;
+        if (remainder == _table[i]) return;
       }
       if (_bucket_occupied[i] || _is_shifted[i]) {
         // if destination is occupied then shift contents
@@ -66,8 +64,7 @@ public:
       }
       _table[i] = remainder;
       _bucket_occupied[quotient] = true;
-      if (i != quotient)
-        _is_shifted[i] = true;
+      if (i != quotient) _is_shifted[i] = true;
       if (i != run_begin)
 
         // otherwise it is where the run must begin
@@ -79,8 +76,7 @@ public:
   }
   bool contains(const Key &key) const noexcept {
     for (const auto hash : _hash_generator.hashes(key)) {
-      if (!_bitset[hash % _bitset.size()])
-        return false;
+      if (!_bitset[hash % _bitset.size()]) return false;
     }
     return true;
   }
@@ -93,7 +89,7 @@ public:
 
   HashGenerator hash_generator() const { return _hash_generator; }
 
-private:
+ private:
   Container _table;
   vector<bool> _bucket_occupied, _run_continued, _is_shifted;
   unsigned int _r;
@@ -103,5 +99,5 @@ private:
     return std::make_tuple(hash >> _r, hash & ((1 << r) - 1));
   }
 };
-} // namespace pds
+}  // namespace pds
 #endif

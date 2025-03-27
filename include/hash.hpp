@@ -1,13 +1,14 @@
 #ifndef PDS_HASH_HPP
 #define PDS_HASH_HPP
 
-#include "MurmurHash3.h"
 #include <iostream>
 #include <limits>
 #include <queue>
 #include <random>
 #include <ranges>
 #include <unordered_set>
+
+#include "MurmurHash3.h"
 
 namespace pds {
 namespace hash {
@@ -31,8 +32,9 @@ concept HashFunction = requires(T t) {
   };
 };
 
-template <typename Key, HashFunction<Key> Hash> class simple_hash_generator {
-public:
+template <typename Key, HashFunction<Key> Hash>
+class simple_hash_generator {
+ public:
   using seed_type = typename Hash::seed_type;
   using hash_type = typename Hash::hash_type;
   simple_hash_generator(size_t hashes_per_key)
@@ -45,14 +47,14 @@ public:
 
   size_t hashes_per_key() const { return _hashes_per_key; }
 
-private:
+ private:
   size_t _hashes_per_key;
 };
 
 template <typename Key, HashFunction<Key> Hash,
           typename Allocator = std::allocator<typename Hash::seed_type>>
 class seeded_hash_generator {
-public:
+ public:
   using seed_type = typename Hash::seed_type;
   using hash_type = typename Hash::hash_type;
   seeded_hash_generator(size_t num_hashes,
@@ -67,8 +69,7 @@ public:
         previous_seeds(alloc);
     for (auto &seed : _seeds) {
       seed = dist(engine);
-      while (previous_seeds.contains(seed))
-        seed = dist(engine);
+      while (previous_seeds.contains(seed)) seed = dist(engine);
       previous_seeds.insert(seed);
     }
   }
@@ -83,11 +84,12 @@ public:
   std::vector<seed_type, Allocator> get_seeds() const { return _seeds; }
   size_t hashes_per_key() const { return _seeds.size(); }
 
-private:
+ private:
   std::vector<seed_type, Allocator> _seeds;
 };
 
-template <typename Key> struct murmer3_x64_128 {
+template <typename Key>
+struct murmer3_x64_128 {
   using seed_type = uint32_t;
   using hash_type = uint64_t;
   hash_type operator()(const Key &key, seed_type seed) {
@@ -97,7 +99,8 @@ template <typename Key> struct murmer3_x64_128 {
   }
 };
 
-template <typename Key> struct murmer3_x86_32 {
+template <typename Key>
+struct murmer3_x86_32 {
   using seed_type = uint32_t;
   using hash_type = uint32_t;
   hash_type operator()(const Key &key, seed_type seed) {
@@ -106,11 +109,12 @@ template <typename Key> struct murmer3_x86_32 {
     return hash;
   }
 };
-template <typename Key> using default_hash = murmer3_x86_32<Key>;
+template <typename Key>
+using default_hash = murmer3_x86_32<Key>;
 
 template <typename Key>
 using default_hash_generator = simple_hash_generator<Key, default_hash<Key>>;
-} // namespace hash
-} // namespace pds
+}  // namespace hash
+}  // namespace pds
 
 #endif

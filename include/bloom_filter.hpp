@@ -1,10 +1,11 @@
 #ifndef PDS_BLOOM_FILTER_HPP
 #define PDS_BLOOM_FILTER_HPP
 
-#include "hash.hpp"
 #include <bit>
 #include <ranges>
 #include <vector>
+
+#include "hash.hpp"
 // use fastrange for faster modulo or libdivide
 // Options for prime number and power-of-2 sized bitvectors. Apparently you want
 // to mod a hash by a prime. use chache local HashGenerator use SIMD
@@ -28,7 +29,7 @@ template <typename Key,
           std::unsigned_integral WordType = uint8_t,
           typename Allocator = std::allocator<WordType>>
 class bloom_filter {
-public:
+ public:
   using key_type = Key;
   using hash_type = HashGen::hash_type;
   using size_type = size_t;
@@ -40,15 +41,15 @@ public:
       std::numeric_limits<word_type>::digits;
   static constexpr size_type bits_per_word_log2 =
       std::countr_zero(bits_per_word);
-  static constexpr word_type word_mask = std::numeric_limits<word_type>::max();
+  static constexpr size_type word_mask = bits_per_word-1u;
 
   static constexpr size_t optimal_num_bits(size_t input_size,
                                            double false_positive_probability) {
     return static_cast<size_t>(-std::log(false_positive_probability) *
                                input_size / std::pow(std::log(2.0), 2));
   }
-  static constexpr size_t
-  optimal_num_hashes(size_t input_size, double false_positive_probability) {
+  static constexpr size_t optimal_num_hashes(
+      size_t input_size, double false_positive_probability) {
     return static_cast<size_t>(
         optimal_num_bits(input_size, false_positive_probability) *
         std::log(2.0) / input_size);
@@ -71,7 +72,7 @@ public:
 
   bloom_filter(size_t num_bits, size_t num_hashes,
                const Allocator &alloc = Allocator())
-      : bit_array_((num_bits + word_mask) / bits_per_word, 0, alloc),
+      : bit_array_((num_bits + bits_per_word - 1) / bits_per_word, 0, alloc),
         hash_generator_(num_hashes) {}
   bloom_filter(size_t input_size, double false_positive_probability = 0.03,
                const Allocator &alloc = Allocator())
@@ -82,7 +83,7 @@ public:
             optimal_num_hashes(input_size, false_positive_probability)) {}
   bloom_filter(size_t num_bits, HashGen hash_generator,
                const Allocator &alloc = Allocator())
-      : bit_array_((num_bits + word_mask) / bits_per_word, 0, alloc),
+      : bit_array_((num_bits + bits_per_word - 1) / bits_per_word, 0, alloc),
         hash_generator_(hash_generator) {}
 
   template <typename InputIt>
@@ -123,8 +124,8 @@ public:
                        [](word_type x) { return x == 0; });
   }
 
-  void
-  swap(const bloom_filter<Key, HashGen, WordType, Allocator> &other) noexcept {
+  void swap(
+      const bloom_filter<Key, HashGen, WordType, Allocator> &other) noexcept {
     bit_array_.swap(other.bit_array_);
   }
 
@@ -144,8 +145,8 @@ public:
 
   const std::vector<word_type> &data() { return bit_array_; }
 
-  bloom_filter<Key, HashGen, WordType, Allocator> &
-  operator&=(const bloom_filter<Key, HashGen, WordType, Allocator> &other) {
+  bloom_filter<Key, HashGen, WordType, Allocator> &operator&=(
+      const bloom_filter<Key, HashGen, WordType, Allocator> &other) {
     assert(other.bit_capacity() == bit_capacity());
     for (size_t i = 0; i < bit_array_.size(); ++i) {
       bit_array_[i] &= other.bit_array_[i];
@@ -153,15 +154,15 @@ public:
     return *this;
   }
 
-  bloom_filter<Key, HashGen, WordType, Allocator>
-  operator&(const bloom_filter<Key, HashGen, WordType, Allocator> &other) {
+  bloom_filter<Key, HashGen, WordType, Allocator> operator&(
+      const bloom_filter<Key, HashGen, WordType, Allocator> &other) {
     bloom_filter<Key, HashGen, WordType, Allocator> res(*this);
     res &= other;
     return res;
   }
 
-  bloom_filter<Key, HashGen, WordType, Allocator> &
-  operator|=(const bloom_filter<Key, HashGen, WordType, Allocator> &other) {
+  bloom_filter<Key, HashGen, WordType, Allocator> &operator|=(
+      const bloom_filter<Key, HashGen, WordType, Allocator> &other) {
     assert(other.bit_capacity() == bit_capacity());
     for (size_t i = 0; i < bit_array_.size(); ++i) {
       bit_array_[i] |= other.bit_array_[i];
@@ -169,16 +170,16 @@ public:
     return *this;
   }
 
-  bloom_filter<Key, HashGen, WordType, Allocator>
-  operator|(const bloom_filter<Key, HashGen, WordType, Allocator> &other) {
+  bloom_filter<Key, HashGen, WordType, Allocator> operator|(
+      const bloom_filter<Key, HashGen, WordType, Allocator> &other) {
     bloom_filter<Key, HashGen, Allocator> res(*this);
     res |= other;
     return res;
   }
 
-private:
+ private:
   std::vector<word_type, allocator_type> bit_array_;
   hash_generator_type hash_generator_;
 };
-} // namespace pds
+}  // namespace pds
 #endif

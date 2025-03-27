@@ -1,4 +1,4 @@
-#include "hash.hpp"
+ #include "hash.hpp"
 #include <gtest/gtest.h>
 #include <random>
 
@@ -36,7 +36,10 @@ TEST(SimpleHashGeneratorTest, HashOutput) {
 
     auto hashes = generator.hashes(key);
     auto hash_results = std::vector<uint64_t>{};
-    std::ranges::copy(hashes, std::back_inserter(hash_results));
+    //std::ranges::copy(hashes, std::back_inserter(hash_results));
+    for (auto hash : hashes) {
+        hash_results.push_back(hash);
+    }
 
     EXPECT_EQ(hash_results.size(), 3);
     EXPECT_NE(hash_results[0], hash_results[1]);

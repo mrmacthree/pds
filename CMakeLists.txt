@@ -4,7 +4,9 @@ project(pds VERSION 0.0.1)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+#set(CMAKE_CXX_CLANG_TIDY "clang-tidy") 
 
+include(CMakeDependentOption)
 cmake_dependent_option(PDS_EXAMPLES "Build PDS examples." ON PROJECT_IS_TOP_LEVEL OFF)
 cmake_dependent_option(PDS_TESTS "Build PDS test suite." ON PROJECT_IS_TOP_LEVEL OFF)
 cmake_dependent_option(PDS_BENCHMARKS "Build PDS benchmarks." ON PROJECT_IS_TOP_LEVEL OFF)
@@ -48,11 +50,12 @@ if (PDS_EXAMPLES)
 endif()
 
 if (PDS_TESTS)
+  enable_testing()
 	add_subdirectory(test)
 endif()
 
 if (PDS_BENCHMARKS)
-	add_subdirectory(benchmark)
+	#add_subdirectory(benchmark)
 endif()
 
 

@@ -1,3 +1,5 @@
 /build
 /Xcode
 .DS_Store
+pds.sublime-project
+pds.sublime-workspace
