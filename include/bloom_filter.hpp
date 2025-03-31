@@ -3,6 +3,8 @@
 
 #include <bit>
 #include <ranges>
+#include <concepts>
+#include <cstdint>
 #include <vector>
 
 #include "hash.hpp"

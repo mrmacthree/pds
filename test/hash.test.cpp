@@ -1,5 +1,7 @@
- #include "hash.hpp"
+#include "hash.hpp"
+
 #include <gtest/gtest.h>
+
 #include <random>
 
 using namespace pds::hash;
@@ -9,18 +11,17 @@ struct MockHash {
     using seed_type = uint32_t;
     using hash_type = uint64_t;
 
-    hash_type operator()(const std::string& key, seed_type seed) const {
+    hash_type operator()(const std::string &key, seed_type seed) const {
         return std::hash<std::string>{}(key) ^ seed;
     }
 };
 
-
 TEST(HashFunctionTest, one) {
-    //static_assert(HashFunction<MockHash, std::string>, "Nope");
-    constexpr bool x =HashFunction<MockHash, std::string>;
-    EXPECT_EQ( x,true);
-    constexpr bool y =HashFunction<MockHash, int>;
-    EXPECT_EQ( y,false);
+    // static_assert(HashFunction<MockHash, std::string>, "Nope");
+    constexpr bool x = HashFunction<MockHash, std::string>;
+    EXPECT_EQ(x, true);
+    constexpr bool y = HashFunction<MockHash, int>;
+    EXPECT_EQ(y, false);
 }
 
 // Test simple_hash_generator initialization
@@ -36,10 +37,10 @@ TEST(SimpleHashGeneratorTest, HashOutput) {
 
     auto hashes = generator.hashes(key);
     auto hash_results = std::vector<uint64_t>{};
-    //std::ranges::copy(hashes, std::back_inserter(hash_results));
-    for (auto hash : hashes) {
-        hash_results.push_back(hash);
-    }
+    std::ranges::copy(hashes, std::back_inserter(hash_results));
+    // for (auto hash : hashes) {
+    //     hash_results.push_back(hash);
+    // }
 
     EXPECT_EQ(hash_results.size(), 3);
     EXPECT_NE(hash_results[0], hash_results[1]);
@@ -115,7 +116,8 @@ TEST(SimpleHashGeneratorTest, CollisionDetection) {
     for (const auto &key : keys) {
         auto hashes = generator.hashes(key);
         for (auto h : hashes) {
-            EXPECT_EQ(hash_set.count(h), 0) << "Collision detected for key: " << key;
+            EXPECT_EQ(hash_set.count(h), 0)
+                << "Collision detected for key: " << key;
             hash_set.insert(h);
         }
     }

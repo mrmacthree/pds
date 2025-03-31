@@ -6,6 +6,8 @@
 #include <queue>
 #include <random>
 #include <ranges>
+#include <concepts>
+#include <cstdint>
 #include <unordered_set>
 
 #include "MurmurHash3.h"
