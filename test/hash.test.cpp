@@ -6,9 +6,9 @@
 
 using namespace pds::hash;
 
-// Mock hash function for testing
-struct MockHash {
-    using seed_type = uint32_t;
+// Mock HashFunction for testing
+struct MockHashFunction {
+    using seed_type = uint64_t;
     using hash_type = uint64_t;
 
     hash_type operator()(const std::string &key, seed_type seed) const {
@@ -16,13 +16,103 @@ struct MockHash {
     }
 };
 
-TEST(HashFunctionTest, one) {
-    // static_assert(HashFunction<MockHash, std::string>, "Nope");
-    constexpr bool x = HashFunction<MockHash, std::string>;
-    EXPECT_EQ(x, true);
-    constexpr bool y = HashFunction<MockHash, int>;
+TEST(HashFunctionTest, CorrectConceptTest) {  
+    // This test checks if the concept is satisfied when the hash function
+    // has the correct types and operator.
+    constexpr bool correct = HashFunction<MockHashFunction, std::string>;
+    EXPECT_EQ(correct, true);
+}
+TEST(HashFunctionTest, KeyTypeTest) {
+    // This test checks if the concept fails when the Key type does not match
+    // the type of the first argument of the operator().
+    constexpr bool key_type = HashFunction<MockHashFunction, int>;
+    EXPECT_EQ(key_type, false);
+}
+TEST(HashFunctionTest, NoSeedTypeTest) {
+    // This test checks if the concept fails when the seed_type is not defined
+    // in the hash function.
+    struct MockHashFunction_no_seed_type {
+        using hash_type = uint64_t;
+    
+        hash_type operator()(const std::string &key, uint64_t seed) const {
+            return std::hash<std::string>{}(key) ^ seed;
+        }
+    };
+    constexpr bool seed_type = HashFunction<MockHashFunction_no_seed_type, std::string>;
+    EXPECT_EQ(seed_type, false);
+}
+TEST(HashFunctionTest, InconsistentSeedTypeTest) {
+    // This test checks if the concept fails when the seed_type is not the same
+    // as the type of the second argument of the operator().
+    struct MockHashFunction_inconsistent_seed_type {
+        using seed_type = uint64_t;
+        using hash_type = uint64_t;
+    
+        hash_type operator()(const std::string &key, std::string seed) const {
+            return std::hash<std::string>{}(key) ^ std::hash<std::string>{}(seed);
+        }
+    };
+    constexpr bool consistent_seed_type = HashFunction<MockHashFunction_inconsistent_seed_type, std::string>;
+    EXPECT_EQ(consistent_seed_type, false);
+}
+TEST(HashFunctionTest, NoHashTypeTest) {
+    // This test checks if the concept fails when the hash_type is not defined
+    // in the hash function.
+    struct MockHashFunctio_no_hash_type {
+        using seed_type = uint64_t;
+    
+        uint64_t operator()(const std::string &key, seed_type seed) const {
+            return std::hash<std::string>{}(key) ^ seed;
+        }
+    };
+    constexpr bool hash_type = HashFunction<MockHashFunctio_no_hash_type, std::string>;
+    EXPECT_EQ(hash_type, false);
+}
+TEST(HashFunctionTest, InconsistentHashTypeTest) {
+    // This test checks if the concept fails when the hash_type is not the same
+    // as the return type of the operator().
+    struct MockHashFunction_inconsistent_hash_type {
+        using seed_type = uint64_t;
+        using hash_type = uint64_t;
+    
+        uint32_t operator()(const std::string &key, seed_type seed) const {
+            return std::hash<std::string>{}(key) ^ seed;
+        }
+    };
+    constexpr bool consistent_hash_type = HashFunction<MockHashFunction_inconsistent_hash_type, std::string>;
+    EXPECT_EQ(consistent_hash_type, false);
+}
+TEST(HashFunctionTest, NoOperatorTest) {
+    // This test checks if the concept fails when the operator() is not defined
+    // in the hash function.
+    struct MockHashFunction_no_operator {
+        using seed_type = uint64_t;
+        using hash_type = uint64_t;
+    
+    };
+    constexpr bool op = HashFunction<MockHashFunction_no_operator, std::string>;
+    EXPECT_EQ(op, false);
+}
+
+TEST(HashGeneratorTest, ConceptTest) {
+    constexpr bool y = HashGenerator<MockHashFunction, int>;
     EXPECT_EQ(y, false);
 }
+
+
+// Mock hash function for testing
+struct MockHash {
+    using seed_type = uint64_t;
+    using hash_type = uint64_t;
+
+    hash_type operator()(const std::string &key, seed_type seed) const {
+        return std::hash<std::string>{}(key) ^ seed;
+    }
+};
+
+
+
+
 
 // Test simple_hash_generator initialization
 TEST(SimpleHashGeneratorTest, Initialization) {

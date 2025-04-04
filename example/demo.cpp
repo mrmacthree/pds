@@ -1,5 +1,6 @@
 #include <limits>
 #include <random>
+#include <iostream>
 #include <sul/dynamic_bitset.hpp>
 #include <vector>
 
@@ -10,8 +11,7 @@ struct MockHash {
     using hash_type = uint64_t;
 
     hash_type operator()(const std::string& key, seed_type seed) const {
-        return 5u ^ seed;
-        // return std::hash<std::string>{}(key) ^ seed;
+        return std::hash<std::string>{}(key) ^ seed;
     }
 };
 
@@ -97,6 +97,6 @@ int main() {
     }
     std::cout << count / 1000.0 << std::endl;
     std::cout << sbf.num_set_bits() << std::endl;
-
+    std::cout << sizeof(uintmax_t) << std::endl;
     return 0;
 }
