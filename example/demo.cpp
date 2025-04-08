@@ -9,6 +9,7 @@
 struct MockHash {
     using seed_type = uint32_t;
     using hash_type = uint64_t;
+    using key_type = std::string;
 
     hash_type operator()(const std::string& key, seed_type seed) const {
         return std::hash<std::string>{}(key) ^ seed;

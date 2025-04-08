@@ -135,11 +135,11 @@ template <typename Key,
           typename Allocator = std::allocator<unsigned long>, bloom_filter_policy::SizingPolicy SizingPolicy =
               bloom_filter_policy::power_of_two>
 class bloom_filter {
+  using word_type = unsigned long;
  public:
   using key_type = Key;
   using hash_type = HashGen::hash_type;
   using size_type = std::size_t;
-  using word_type = unsigned long;
   using allocator_type = Allocator;
   using hash_generator_type = HashGen;
 

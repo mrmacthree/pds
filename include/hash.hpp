@@ -19,6 +19,8 @@ template <typename T, typename Key>
 concept HashFunction = requires(T t) {
   typename T::hash_type;
   typename T::seed_type;
+  typename T::key_type;
+  requires std::same_as<typename T::key_type, Key>;
   requires std::unsigned_integral<typename T::hash_type>;
   requires std::unsigned_integral<typename T::seed_type>;
   requires requires(Key &k, typename T::seed_type s) {
@@ -30,6 +32,8 @@ concept HashFunction = requires(T t) {
 template <typename T, typename Key>
 concept HashGenerator = requires(T t, size_t n, Key k) {
   typename T::hash_type;
+  typename T::key_type;
+  requires std::same_as<typename T::key_type, Key>;
   requires std::unsigned_integral<typename T::hash_type>;
   T{n};
   { t.hashes_per_key() } -> std::convertible_to<std::size_t>;
@@ -38,7 +42,6 @@ concept HashGenerator = requires(T t, size_t n, Key k) {
   requires std::same_as<std::ranges::range_value_t<decltype(t.hashes(k))>,
                         typename T::hash_type>;
 };
-
 
 template <typename T, typename HashType>
 concept RangeFunction = std::unsigned_integral<HashType> && requires(T t, HashType h, std::size_t n) {
@@ -80,9 +83,10 @@ struct fast_range<uint64_t> {
 
 template <typename Key, HashFunction<Key> Hash, RangeFunction<typename Hash::hash_type> Range = mod_range<typename Hash::hash_type>>
 class simple_hash_generator {
- public:
   using seed_type = typename Hash::seed_type;
+ public:
   using hash_type = typename Hash::hash_type;
+  using key_type = Key;
   simple_hash_generator(size_t hashes_per_key, size_t range = std::numeric_limits<hash_type>::max())
       : _hashes_per_key(hashes_per_key), range_{range} {
         if constexpr (std::same_as<Range, pow_2_range<typename Hash::hash_type>>) {
@@ -90,7 +94,7 @@ class simple_hash_generator {
           assert((range & (range - 1)) == 0);
         }
       }
-  auto hashes(const Key &key) const {
+  auto hashes(const key_type &key) const {
     return std::views::iota(0u, _hashes_per_key) |
            std::views::transform(
                [&](seed_type seed) { return Range{}(Hash{}(key, seed), range_); });
@@ -144,7 +148,8 @@ template <typename Key>
 struct murmer3_x64_128 {
   using seed_type = uint32_t;
   using hash_type = uint64_t;
-  hash_type operator()(const Key &key, seed_type seed) {
+  using key_type = Key;
+  hash_type operator()(const key_type &key, seed_type seed) {
     uint64_t hash[2];
     MurmurHash3_x64_128(&key, sizeof(Key), seed, hash);
     return hash[0];
@@ -155,7 +160,8 @@ template <typename Key>
 struct murmer3_x86_32 {
   using seed_type = uint32_t;
   using hash_type = uint32_t;
-  hash_type operator()(const Key &key, seed_type seed) {
+  using key_type = Key;
+  hash_type operator()(const key_type &key, seed_type seed) {
     uint32_t hash;
     MurmurHash3_x86_32(&key, sizeof(Key), seed, &hash);
     return hash;
